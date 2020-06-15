@@ -1,0 +1,821 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+
+		<title>Conversational Search Study</title>
+
+		<link href="http://mincss.com/entireframework.min.css" rel="stylesheet" type="text/css">
+
+        <style>
+            body {
+                background: #333;
+                color: white;
+            }
+
+            h1 {
+                margin-bottom: 0;
+            }
+
+            p, ul {
+                font-size: 20px;
+            }
+
+            .btn.consent {
+                margin-right: 20px;
+            }
+
+            img {
+							transition: 0.3s all;
+							border-radius: 1000px;
+                border: 30px solid #6c6cc5;
+                margin: auto;
+                display: block;
+            }
+
+						.bot1 img {
+							border: 30px solid #6c6cc5; 
+						}
+
+						.bot2 img {
+							border: 30px solid #c56c6c;
+							border-style: groove;
+						}
+
+						.bot3 img {
+							border: 30px solid #76c56c;
+							border-style: double; /* also double as an option? */
+						}
+
+						img:hover {
+							filter: brightness(0.8);
+						}
+
+						img:active {
+							filter: brightness(0.5);
+						}
+
+            .a {
+                color: #7777ff;
+            }
+            .b {
+                color: #77ff7b;
+            }
+
+						@keyframes speakingimg {
+							0% {
+								border-left: 30px solid white; /* 6c6cc5 */
+							}
+
+							50% {
+								border-left: 30px solid transparent; /* #b3b0e2; */
+							}
+						 100% {
+								border-left: 30px solid white; /* #6c6cc5; */
+							}
+						}
+
+						img.speaking {
+							animation-name: speakingimg;
+							animation-duration: 2s;
+							animation-iteration-count: infinite;
+						}
+
+						#outputhuman {
+							background: #84bbea;
+							color: black;
+							display: inline-block;
+							padding: 20px;
+							border-radius: 14px;
+							margin: 10px;
+						}
+
+						#outputbot {
+							background: #cadcea;
+							color: black;
+							display: inline-block;
+							padding: 20px;
+							border-radius: 14px;
+							float: right;
+							margin: 10px;
+							margin-left: 30%;
+						}
+
+						#reddot {
+							display: none;
+
+
+							background: red;
+							height: 100px;
+							width: 100px;
+							border-radius: 1000px;
+							line-height: 95px;
+							text-align: center;
+							cursor: pointer;
+							position: fixed;
+							left: calc(50% - 50px);
+							top: calc(50% - 50px);
+							transition: 200ms all;
+						}
+
+						#reddot:hover {
+							filter: hue-rotate(20deg);
+						}
+
+						#reddot:active {
+							filter: hue-rotate(30deg);
+						}
+
+						#bot1, #bot2, #bot3 {
+							display: none;
+						}
+
+						/* Unused stuff */
+						#outputhuman, #outputbot {
+							display: none;
+						}
+
+						/* For highlight text animation */
+						p {
+							transition: background 1000ms;
+						}
+
+						/* Time for fancy sliders! */
+.slidercontainer {
+  width: 100%; /* Width of the outside container */
+	text-align: center;
+	font-size: 1.3em;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 41px;
+	border: 0;
+  border-radius: 35px;  
+  background: #d3d3d3;
+  outline: none;
+  opacity: 0.7;
+  -webkit-transition: .2s;
+  transition: opacity .2s;
+
+	margin-top: 40px;
+	margin-bottom: 40px;
+	display: block;
+	box-sizing: border-box;
+	padding: 0;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%; 
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+/* We only care about webkit cause this doesn't work on Firefox anyway. */
+.bot1 .slider::-webkit-slider-thumb {
+	border: 20px solid #6c6cc5;
+	background: url('https://i.imgur.com/8LP0nBw.png');
+	background-size: cover;
+	width: 110px;
+	height: 110px;
+	appearance: none;
+}
+
+.bot2 .slider::-webkit-slider-thumb {
+	border: 20px solid #c56c6c;
+	/* background: #333; */
+	background: url('https://i.imgur.com/8LP0nBw.png');
+	background-size: cover;
+	width: 110px;
+	height: 110px;
+	appearance: none;
+	border-style: groove;
+}
+
+.bot3 .slider::-webkit-slider-thumb {
+	border: 20px solid #76c56c;
+	background: url('https://i.imgur.com/8LP0nBw.png');
+	background-size: cover;
+	width: 110px;
+	height: 110px;
+	appearance: none;
+	border-style: double;
+}
+
+.slidercontainer span {
+/*	max-width: 80px;*/
+	max-width: 5em;
+	display: block;
+}
+
+#mid-slider {
+/*	max-width: 60px;*/
+	max-width: 6em;
+	margin: auto;
+	margin-top: 20px;
+	margin-bottom: -20px;
+}
+
+#right-slider {
+	float: right;
+	/* max-width: 62px; */
+	max-width: 4em;
+}
+
+#sliderval1, #sliderval2, #sliderval3 {
+	display: inline;
+}
+
+#allsliders {
+	display: none;
+	/* Hide unless we're at the right stage. */
+}
+
+hr {
+	margin: 30px;
+}
+        </style>
+				<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    </head>
+	<body>
+<!--		<nav class="nav" tabindex="-1" onclick="this.focus()">
+			<div class="container">
+				<a class="pagename current" href="#">Voice Assistant Study</a>
+				<a href="#">Progress: Step <span id="progressspan">0</span>/4</a>
+
+			</div>
+		</nav>
+		<button class="btn-close btn btn-sm">×</button>-->
+		<div class="container">
+			<h1 id="h1">Voice Assistant Study</h1>
+			<p id="p0">This is a study designed to help improve voice assistants (like Siri or Alexa.) You will test three different bots in four stages. The study should take about 8 minutes.</p>
+			<p id="p1">In this study we will process your questions to the voice assistants. If you consent to this, click "Agree and activate microphone."</p>
+			<a class="btn" id="consentandallow">Agree and activate microphone</a>
+			<p id="p2">If you do not consent, or grant access to your microphone, you can not take part in the study.</p>
+			<p id="p3"></p>
+			<div class="row">
+			<div id="bot1" class="col c4 bot1">
+				<img src="https://i.imgur.com/8LP0nBw.png">
+			</div>
+			<div id="bot2" class="col c4 bot2">
+				<img src="https://i.imgur.com/8LP0nBw.png">
+			</div>
+		  <div id="bot3" class="col c4 bot3">
+				<img src="https://i.imgur.com/8LP0nBw.png">
+			</div>
+			<div id="allsliders">
+				<div class="slidercontainer bot1">
+					The 1st bot gave a short response from one source.<br><br>
+					Your rating: <span id="sliderval1">5</span>/10
+					<input type="range" min="0" max="100" value="50" class="slider" id="range1" onpointermove="sliderval1.innerText = (event.target.value/10)" onchange="this.onpointermove(event)">
+					<span id="mid-slider">Neutral</span>
+					<span id="right-slider">Very satisfied</span>
+					<span id="left-slider">Very unsatisfied</span>
+				</div>
+				<hr>
+				<div class="slidercontainer bot2">
+					The 2nd bot was the Question and Answer bot.<br><br>
+					Your rating: <span id="sliderval2">5</span>/10
+					<input type="range" min="0" max="100" value="50" class="slider" id="range2" onpointermove="sliderval2.innerText = (event.target.value/10)" onchange="this.onpointermove(event)">
+					<span id="mid-slider">Neutral</span>
+					<span id="right-slider">Very satisfied</span>
+					<span id="left-slider">Very unsatisfied</span>
+				</div>
+				<hr>
+				<div class="slidercontainer bot3">
+					The 3rd bot gave a long response from 3 sources.<br><br>
+					Your rating: <span id="sliderval3">5</span>/10
+					<input type="range" min="0" max="100" value="50" class="slider" id="range3" onpointermove="sliderval3.innerText = (event.target.value/10)" onchange="this.onpointermove(event)">
+					<span id="mid-slider">Neutral</span>
+					<span id="right-slider">Very satisfied</span>
+					<span id="left-slider">Very unsatisfied</span>
+				</div>
+				<br><br>
+				<a onclick="nextSubstage(substage + 1)" class="btn">I'm done rating the bots, continue »</a>
+			</div>
+			<br><br><br>
+    </div>
+		<div id="outputhuman">Your message</div>
+		<div id="outputbot">Bot message</div>
+		<div id="reddot" onclick="redDotClicked()">Click me!</div>
+<script>
+// Prompt for Prolific ID if it's not in URL.
+const urlParams = new URLSearchParams(window.location.search);
+let prolificID = urlParams.get('PROLIFIC_PID');
+if (!prolificID) prolificID = prompt('What is your Prolific ID?','');
+console.log('Prolific ID: ' + prolificID);
+
+var isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+
+if (!isChrome) { 
+	var errMsg = 'Sorry, you must do this survey using Google Chrome only.';
+	alert(errMsg);
+	document.body.innerHTML = errMsg;
+}
+
+//var tasks = ["Using the voice assistants, determine some reasons for car recalls.", "Using the voice assistants, determine some famous expeditions to Antarctica."]
+
+var tasks = ["Using the voice assistants, determine some accomplishments of the hubble telescope.", "Using the voice assistants, determine some famous tunnel disasters."];
+
+var taskNo = 0;
+if (Math.random() > 0.5) taskNo = 1;
+
+var task = tasks[taskNo];
+
+console.log('task ' + taskNo + ' text: ' + task);
+
+var stage = 0;
+var substage = 0;
+var currBot = -1;
+var micAllowed = false;
+var ignoreClick = false;
+
+/* 
+ * What do we actually log?
+ * searches
+ * results from searches
+
+ */
+
+var likert = [
+	[-1, -1, -1],
+	[-1, -1, -1],
+	[-1, -1, -1],
+	[-1, -1, -1]
+]
+
+//var queries = ["-", "-", "-", "-"]
+var queries = [];
+var responses = [];
+//var responses = ["-", "-", "-", "-"]
+var dotTimes = [];
+
+var logs = {
+	// because of how JS objects work, this will "stay updated"
+	dotTimes: dotTimes,
+	prolificID: prolificID,	
+	likert: likert,
+	taskNo: taskNo,
+	queries: queries,
+	responses: responses
+}
+
+function sendLogs() {
+	// OK, GET is over 2kb, long responses, so we send a POST.
+	$.post( '/log', JSON.stringify(logs), req => console.log(req));
+}
+
+var everythingLog = [];
+// timestamp | Searched for xxx
+
+
+function mikeCheck() {
+	// I have a Russian friend who's a sound engineer.
+	// And a Czech one. And a Czech one too.
+
+	navigator.permissions.query({name:'microphone'}).then(function(result) {
+	 if (result.state == 'granted') {
+		 micAllowed = true;
+		 nextStage(1);
+   } else {
+		 // Not allowed (if you have a bug here read mdn)
+		 // so keep checking.
+		 setTimeout(mikeCheck, 200);
+	 }
+	});
+}
+
+mikeCheck();
+
+var distractionText = 'In this part, you will be distracted by a red dot appearing on screen. <b>You must click/tap this red dot as soon as you see it; this will make it disappear.</b>';
+
+function nextStage(newStage) {
+	console.log(`Moving from stage ${stage} to stage ${newStage}`);
+	stage = newStage;
+	switch (stage) {
+		case 1:
+			// Stage 1 = mic test "say continue"
+			// Remove Stage 0 consent button
+			consentandallow.style.display = "none";
+			p0.innerHTML = "You will hear a number being repeated.";
+			p1.innerHTML = "Speak this number to continue.";
+			p2.innerHTML = "Make sure your headphones or speakers are on.";
+			speaking = true;
+			speakOnRepeat('five');
+			break;
+		case 2:
+			speaking = false;
+			h1.innerText = "Part 1/4";
+			p0.innerText = "First you will test Bot 1. Ask Bot 1 a question, then it will respond with a short response from one source.";
+			p1.innerText = `Your task: ${task}`;
+			p2.innerText = "Click or tap once on the microphone icon, then speak, to talk to the bot.";
+			showBot(1);
+			break;
+		case 3:
+			h1.innerText = "Part 2/4";
+			p0.innerText = "Now you will test Bot 1, this time with a distraction. Ask Bot 1 a question, then it will respond with a short response from one source.";
+			p1.innerText = `Your task: ${task}`;
+			p2.innerText = "Click or tap once on the microphone icon, then speak, to talk to the bot.";
+			p3.innerHTML = distractionText;
+			showBot(1);
+			startDotGame();
+			highlightP(0);
+			highlightP(3);
+			break;
+		case 4:
+			stopDotGame();
+			h1.innerText = "Part 3/4";
+			p0.innerText = "Now you will test Bot 1 with no distraction. Ask Bot 1 a question, then it will respond with a short response from one source.";
+			p1.innerText = `Your task: ${task}`;
+			p2.innerText = "Click or tap once on the microphone icon, then speak, to talk to the bot.";
+			p3.innerText = '';
+			highlightP(0);
+			showBot(1);
+			break;
+		case 5:
+			startDotGame();
+			h1.innerText = "Part 4/4";
+			p0.innerText = "Now you will test Bot 1, again with a distraction. Ask Bot 1 a question, then it will respond with a short response from one source.";
+			p1.innerText = `Your task: ${task}`;
+			p2.innerText = "Click or tap once on the microphone icon, then speak, to talk to the bot.";
+			p3.innerHTML = distractionText;
+			showBot(1);
+			highlightP(0);
+			highlightP(3);
+			break;
+		case 6:
+			h1.innerText = "You have finished, thank you!"
+			p0.innerText = "You will be automatically redirected to Prolific in 5 seconds."
+			p1.innerText = "";
+			p2.innerText = "";
+			p3.innerText = "";
+			setTimeout(_ => (window.location.href = 'http://www.google.com'), 5000);
+		default:
+			console.log(`No code for stage ${stage}`);
+	}
+}
+
+function nextSubstage(newSubstage) {
+	console.log(`Moving from substage ${substage} to ${newSubstage}`);
+	// First, bot 1 is shown, response is read, moves on to bot 2.
+	// 0 -> 1: Moving from bot 1 to 2
+	// 1 -> 2: Moving from bot 2 to 2.5 (user just asked bot 2 a question, it responded, now we ask for a user response (to choose 1/3 sites)
+	// 2 -> 3: Moving from bot 2.5 to 3 (user got an answer from bot 2, now on to bot 3)
+	// 3 -> 4: Moving from bot 3 to Likert (user got an answer from bot 3, now show Likert)
+	// 4 -> 5: Moving from Likert to reset state (next full stage)
+	if (newSubstage < 5) {
+		// Only substages are 1, 2, 3, and 4 (all less than 5)
+		// Finished speaking, so move to a new substage.
+		substage = newSubstage;
+		// Show a new bot.
+		showBot(2);
+		// Set the text for this bot.
+		if (substage === 1) {
+			p0.innerText = "Now you will test Bot 2. Ask Bot 2 a question, then it will respond with a clarifying question; answer this question and it will provide a final response.";
+			highlightP(0);
+			showBot(2);
+		} else if (substage === 2) {
+			console.log("moving from bot2 pt1 to bot2 pt2");
+			// No triggers needed - we speak "please click the mic" so they'll do this.
+			ignoreClick = false;
+		} else if (substage === 3) {
+			p0.innerText = "Last you will test Bot 3. Ask Bot 3 a question, then it will respond with a long response from multiple sources."
+			highlightP(0);
+			showBot(3);
+		} else if (substage === 4) {
+			// All bots tried, now show them a rating system for each.
+			// Stop dot game (if it's not on this has no effect)
+			stopDotGame();
+			// Hide last bot
+			showBot(-1);
+			allsliders.style.display = "block";
+			p0.innerText = "How satisfied were you with the three bots? Rate them:"
+			p1.innerText = "";
+			p2.innerText = "";
+			p3.innerText = "";
+		}
+	} else {
+		// Finished Likert, move to a new stage.
+	  // First, save Likert.
+		likert[stage - 2][0] = range1.value;
+		likert[stage - 2][1] = range2.value;
+		likert[stage - 2][2] = range3.value;
+
+		range1.value = 50;
+    range2.value = 50;
+ 	  range3.value = 50;
+
+		sliderval1.innerText = 5
+		sliderval2.innerText = 5
+		sliderval3.innerText = 5
+
+		// Second, hide Likert.
+		allsliders.style.display = "none";
+
+		// Third, send logs to server... juustincase.
+		sendLogs();
+
+		// Next, go to the right substage.
+		substage = 0;
+		nextStage(stage + 1);
+	}
+}
+
+
+function highlightP(pNumber) {
+	window[`p${pNumber}`].style.background = "white"; 
+	setTimeout(_ => window[`p${pNumber}`].style.background = "none", 500)
+}
+
+function showBot(botNo) {
+	// If botNo and currBot are different, turn off currBot and on botNo.
+	if (botNo !== currBot) {
+		currBotElem = window[`bot${currBot}`];
+		if (currBotElem) currBotElem.style.display = "none";
+		newBotElem = window[`bot${botNo}`];
+		if (newBotElem) {
+			newBotElem.style.display = "block";
+			ignoreClick = false;
+		}
+		currBot = botNo;
+	}
+}
+
+var speaking = false;
+
+function speakOnRepeat(word) {
+	if (speaking) {
+		let utter = new SpeechSynthesisUtterance(word);
+		synth.speak(utter);
+		setTimeout(speakOnRepeat.bind(this, word), 1000);
+	}
+}
+
+	var timeDotPlaced = 0;
+	//var dotTimes = [];
+	var dotGameOn = false;
+
+	/*
+	 * The red 
+	 */
+
+	function redDotClicked() {
+		// Clicked, so save time
+		var reactTime = (+new Date()) - timeDotPlaced;
+		console.log('Reacted in ' + reactTime);
+		dotTimes.push(reactTime);
+
+		// Remove dot and set a random timeout for a new one.
+		// Between 0-10 seconds good? That's Math.rand * 10000 ms
+		// Actually, 0-10 seconds is decent.
+		var dotTimeout = Math.random() * 10000;
+		reddot.style.display = "none";
+		// Hide dot until next timeout
+		setTimeout(startNewDot, dotTimeout);
+	}
+
+	function startDotGame() {
+		dotGameOn = true;
+		startNewDot();
+	}
+
+	function startNewDot() {
+		if (dotGameOn) {
+			reddot.style.display = "block";
+			timeDotPlaced = +new Date();
+
+			// Randomly place dot
+			var topPos = Math.round(Math.random() * 100);
+			var leftPos = Math.round(Math.random() * 100);
+
+			if (topPos > 70) topPos = 70;
+			if (leftPos > 70) leftPos = 70;
+
+			reddot.style.left = leftPos + '%';
+			reddot.style.top =  topPos + '%';
+		}
+	}
+
+	function stopDotGame() {
+		dotGameOn = false;
+		reddot.style.display = "none";
+		dotTimes.push(-1);
+	}
+
+	var questions = [
+		['Voice Assistant Study', `Welcome to the Voice Assistant Study.
+		You will be testing three voice assistants with two different information sources. You will use each with and without a distraction.
+<br><br>
+This study is divided into four parts: source 1 + no distraction, source 1 + distraction, source 2 + no distraction, source 2 + distraction.
+<br><br>
+Turn off any background music, then make sure your microphone and speakers/headphones work. Then, test your audio setup by clicking on the microphone icon below.
+`], 
+		['Part 1: Source #1 + No Distraction', ''],
+		['Part 2: Source #2 + Distraction', ''],
+		['Part 3: Source #1 + No Distraction', ''],
+		['Part 4: Source #2 + Distraction', '']
+	]
+
+var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition
+var SpeechGrammarList = SpeechGrammarList || webkitSpeechGrammarList
+var SpeechRecognitionEvent = SpeechRecognitionEvent || webkitSpeechRecognitionEvent
+
+var recognition = new SpeechRecognition();
+//var speechRecognitionList = new SpeechGrammarList();
+//speechRecognitionList.addFromString(grammar, 1);
+//recognition.grammars = speechRecognitionList;
+recognition.continuous = false;
+recognition.lang = 'en-US';
+recognition.interimResults = false;
+recognition.maxAlternatives = 1;
+
+var bg = document.querySelector('html');
+
+consentandallow.onclick = startRecognizing;
+
+bot1.onclick = bot2.onclick = bot3.onclick = startRecognizing; 
+
+function startRecognizing() {
+	if (ignoreClick === false) {
+		ignoreClick = true;
+		recognition.start();
+		console.log('Ready to receive speech input.');
+		//console.log('Waiting for a five.');
+	} else {
+		console.log("EXTRANEOUS CLICK IGNORED");
+	}
+}
+
+var synth = window.speechSynthesis;
+
+var whichSiteToChoose = 0;
+var prevTranscribed = '';
+
+recognition.onresult = function(event) {
+  var transcribed = event.results[0][0].transcript;
+  console.log('Result received: ' + transcribed);
+
+	everythingLog.push('Searched for ' + transcribed);
+	queries.push(transcribed);
+
+	console.log('Confidence: ' + event.results[0][0].confidence);
+
+	if (stage === 1) {
+		// Looking for a five
+		if (transcribed.search('five') !== -1 || transcribed.search('5') !== -1) nextStage(2);
+	} else if (substage === 2) {
+		// We just asked them for a number 1, 2 or 3
+		if (transcribed.search('one') !== -1 || transcribed.search('1') !== -1) whichSiteToChoose = 0;
+		if (transcribed.search('two') !== -1 || transcribed.search('2') !== -1) whichSiteToChoose = 1;
+		if (transcribed.search('three') !== -1 || transcribed.search('3') !== -1) whichSiteToChoose = 2;
+		searchFor(prevTranscribed);
+	} else {
+		outputhuman.innerHTML = transcribed;
+
+		searchFor(transcribed);
+	}
+
+	prevTranscribed = transcribed;
+}
+
+function getDomain(url) {
+	return url.split('://')[1].split('/')[0];
+}
+
+function searchFor(searchQuery) {
+	var newSearchQuery = processQuery(searchQuery);
+
+	// By default, pick hubble db
+	var databaseToUse = databaseHubble;
+
+	// By default, pick tunnel db
+	//var databaseToUse = databaseTunnel;
+
+	// If the query has 'tunnel', 'disaster' in it then switch to tunnel one
+	if ( (newSearchQuery.toLowerCase().indexOf('tunnel') !== -1) || (newSearchQuery.toLowerCase().indexOf('disaster') !== -1) ) databaseToUse = databaseTunnel;
+
+	// If the query has hubble, or telescope in it
+	//if ( (newSearchQuery.toLowerCase().indexOf('hubble') !== -1) ||  || (newSearchQuery.toLowerCase().indexOf('telescope') !== -1) )
+
+	/*
+		If I want to make it default hubble:
+	 it picked me up as Hippo
+	cobblestone
+	high blood pressure???
+
+		Possible problems:
+	"hubble" -> bubble
+	"tunnel" -> ???
+
+		*/
+
+	// Search with local db if it's stage 2 or 3 (which are really stage 1/2.)
+	// MAKE SURE TO STRINGIFY cause it expects text
+	if ( (stage === 2) || (stage === 3) ) searchRequest(JSON.stringify(databaseToUse))
+	else {
+		// we want to search with Bing
+		$.get( '/getData/' + encodeURI(newSearchQuery), searchRequest);
+	}
+}	
+
+// Achievements of Hubble
+var databaseHubble = [
+  { url: 'http://nasa.gov', name: 'Achievements of the Hubble Telescope', snippet: 'The Hubble Space Telescope is responsible for many major discoveries. Using Hubble, scientists have determined how planets are born, discovered planetary moons, found the first extrasolar organic matter and calculated the age of the universe.' }
+, { url: 'http://space.com', name: 'The Most Amazing Hubble Discoveries', snippet: 'Here is a short rundown of Hubble\'s greatest achievements. Dark Matter. Dark Matter reveals its existence through gravity.' }
+, {url: 'http://hubblesite.org', name: 'Four Successful Women Behind the Hubble Space Telescope', snippet: 'Four Successful Women Behind the Hubble Space Telescope\'s Achievements. They\'ve worked in the deadly vacuum of outer space, appropriated millions of' }
+]
+
+// Tunnel disasters
+var databaseTunnel = [
+	{url: 'http://en.wikipedia.org', name: 'Tunnel disasters - Wikipedia', snippet: 'Tunnel disasters include: Salang Tunnel fire. Sasago Tunnel. Severn Tunnel rail accident. Sierre coach crash. Summit Tunnel fire. Sutton Tunnel railway accident'}
+, {url: 'http://theguardian.com', name: 'Vehicles found fused together in molten mass after tunnel disaster', snippet: 'October 26, 2001 - The Gotthard tunnel disaster, Switzerland\'s worst ever, will hit European freight traffic - and Italy\'s entire economy - hard.' }
+, {url: 'http://nps.gov', name: 'The Hawk\'s Nest Tunnel Disaster: Summersville, WV', snippet: 'This disaster became one of the worst industrial tragedies in the history of the United States.' }
+]
+
+function searchRequest (data) {
+	var parsedData = JSON.parse(data);
+	var toSpeak = JSON.parse(data)[0].name + ' ' + JSON.parse(data)[0].snippet;
+
+	// BUT! If we're in substage 1 (aka just started bot 2), speak the following:
+	// "Which website should I read from? google.com reddit.com amazon.com"
+	// REED cause it says read wrong lmao
+	if (substage === 1) toSpeak = `Which website should I reed from? Website 1, ${getDomain(parsedData[0].url)}, Website 2 ${getDomain(parsedData[1].url)}, or Website 3 ${getDomain(parsedData[2].url)}? Tap the microphone and say 1, 2 or 3`;
+
+	// If we're in substage 2, then we want to read out the site they chose:
+	if (substage === 2) toSpeak = parsedData[whichSiteToChoose].name + ' ' + parsedData[whichSiteToChoose].snippet;
+
+	// If we're in substage 3, then read -all- the shit
+	if (substage === 3) toSpeak = `Result 1: ${parsedData[0].name} ${parsedData[0].snippet} Result 2: ${parsedData[1].name} ${parsedData[1].snippet} Result 3: ${parsedData[2].name} ${parsedData[2].snippet}`;
+
+	everythingLog.push('Speaking: ' + toSpeak);
+	responses.push(toSpeak);
+
+	$(outputbot).html(toSpeak);
+
+	console.log('Speaking: ' + toSpeak);
+	console.log(data);
+	window.utterances = [];
+	utter = new SpeechSynthesisUtterance(toSpeak)
+
+	utter.onend = function() { $('img').removeClass('speaking'); }
+	utter.addEventListener('end', function () {
+		console.log('stopped - this console.log is actually important');
+		clearTimeout(myTimeout);
+		// Now, we're done speaking; move to next bot.
+		nextSubstage(substage + 1);
+	})
+
+	utterances.push( utter );
+	myTimeout = setTimeout(myTimer, 10000);
+	// gotta do this or it stops speaking
+
+	$('img').addClass('speaking');
+	synth.cancel();
+	synth.speak(utter);
+}
+
+function processQuery(query) {
+	if (query.indexOf('some') === -1) query = 'some ' + query;
+	query = query.replace('determine', '').replace('most', '');
+	if (query.indexOf('tunnel') !== -1) query = query + ' NOT wikipedia NOT youtube';
+	return query;
+}
+
+recognition.onspeechend = function() {
+  recognition.stop();
+}
+
+recognition.onnomatch = function(event) {
+  console.log("I didn't recognise that.")
+}
+
+recognition.onerror = function(event) {
+  console.log('Error occurred in recognition: ' + event.error);
+}
+
+var myTimeout;
+function myTimer() {
+	window.speechSynthesis.pause();
+	window.speechSynthesis.resume();
+	myTimeout = setTimeout(myTimer, 10000);
+}
+</script>
+
+	</body>
+</html>
+
