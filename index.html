@@ -314,6 +314,8 @@ hr {
 		<div id="outputbot">Bot message</div>
 		<div id="reddot" onclick="redDotClicked()">Click me!</div>
 <script>
+var urlprefix = "https://cors-anywhere.herokuapp.com/http://51.75.28.58:3000"
+
 // Prompt for Prolific ID if it's not in URL.
 const urlParams = new URLSearchParams(window.location.search);
 let prolificID = urlParams.get('PROLIFIC_PID');
@@ -345,6 +347,12 @@ var currBot = -1;
 var micAllowed = false;
 var ignoreClick = false;
 
+/* 
+ * What do we actually log?
+ * searches
+ * results from searches
+
+ */
 
 var likert = [
 	[-1, -1, -1],
@@ -371,7 +379,7 @@ var logs = {
 
 function sendLogs() {
 	// OK, GET is over 2kb, long responses, so we send a POST.
-	$.post( '/log', JSON.stringify(logs), req => console.log(req));
+	$.post(urlprefix + '/log', JSON.stringify(logs), req => console.log(req));
 }
 
 var everythingLog = [];
@@ -723,7 +731,7 @@ function searchFor(searchQuery) {
 	if ( (stage === 2) || (stage === 3) ) searchRequest(JSON.stringify(databaseToUse))
 	else {
 		// we want to search with Bing
-		$.get( '/getData/' + encodeURI(newSearchQuery), searchRequest);
+		$.get(urlprefix + '/getData/' + encodeURI(newSearchQuery), searchRequest);
 	}
 }	
 
