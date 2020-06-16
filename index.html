@@ -399,10 +399,14 @@ function mikeCheck() {
 		 // If less than 100ms, it was already approved. So the handler for consentandallow should now be 1) startRecognizing 2) nextStage(1) instead of just startRecognizing.
 	   if ((+new Date() - thisInstant) < 100) {
 			 consentandallow.onclick = function() {
+				 console.log('Auto granted');
 				 startRecognizing();
 				 nextStage(1);
 			 }
-		 } else nextStage(1);
+		 } else {
+			 console.log('Manually granted');
+			 nextStage(1);
+		 }
    } else {
 		 // Not allowed (if you have a bug here read mdn)
 		 // so keep checking.
@@ -417,15 +421,17 @@ var distractionText = 'In this part, you will be distracted by a red dot appeari
 
 function nextStage(newStage) {
 	console.log(`Moving from stage ${stage} to stage ${newStage}`);
+	resultStage = false;
 	stage = newStage;
 	switch (stage) {
 		case 1:
 			// Stage 1 = mic test "say continue"
 			// Remove Stage 0 consent button
 			consentandallow.style.display = "none";
-			p0.innerHTML = "You will hear a number being repeated.";
-			p1.innerHTML = "Speak this number to continue.";
-			p2.innerHTML = "Make sure your headphones or speakers are on.";
+			p0.innerHTML = "<b>During this study it is very important to speak loud and clear.</b>"
+			p1.innerHTML = "You will hear a number being repeated.";
+			p2.innerHTML = "Speak this number to continue.";
+			p3.innerHTML = "Make sure your headphones or speakers are on.";
 			speaking = true;
 			speakOnRepeat('seventy seven');
 			break;
@@ -483,6 +489,7 @@ function nextStage(newStage) {
 }
 
 function nextSubstage(newSubstage) {
+	resultStage = false;
 	console.log(`Moving from substage ${substage} to ${newSubstage}`);
 	// First, bot 1 is shown, response is read, moves on to bot 2.
 	// 0 -> 1: Moving from bot 1 to 2
@@ -574,7 +581,8 @@ function speakOnRepeat(word) {
 	if (speaking) {
 		let utter = new SpeechSynthesisUtterance(word);
 		synth.speak(utter);
-		setTimeout(speakOnRepeat.bind(this, word), 1000);
+		console.log('Speaking' + utter);
+		setTimeout(speakOnRepeat.bind(this, word), 2000);
 	}
 }
 
@@ -662,10 +670,21 @@ consentandallow.onclick = startRecognizing;
 
 bot1.onclick = bot2.onclick = bot3.onclick = startRecognizing; 
 
+var isListening = false;
+
 function startRecognizing() {
+	resultStage = false;
 	if (ignoreClick === false) {
 		ignoreClick = true;
-		recognition.start();
+		try {
+			recognition.start();
+			isListening = true;
+		} catch (e) {
+			console.log(e);
+			console.log('waiting a bit');
+			setTimeout(recognition.start, 500);
+			isListening = true;
+		}
 		console.log('Ready to receive speech input.');
 		//console.log('Waiting for a 77.');
 	} else {
@@ -677,8 +696,10 @@ var synth = window.speechSynthesis;
 
 var whichSiteToChoose = 0;
 var prevTranscribed = '';
+var resultStage = false;
 
 recognition.onresult = function(event) {
+	resultStage = true;
   var transcribed = event.results[0][0].transcript;
   console.log('Result received: ' + transcribed);
 
@@ -723,7 +744,17 @@ function searchFor(searchQuery) {
 	//var databaseToUse = databaseTunnel;
 
 	// If the query has 'tunnel', 'disaster' in it then switch to tunnel one
-	if ( (newSearchQuery.toLowerCase().indexOf('tunnel') !== -1) || (newSearchQuery.toLowerCase().indexOf('disaster') !== -1) ) databaseToUse = databaseTunnel;
+
+	// Similar to tunnel: animal, collapse, crash, ???
+
+	if ( 
+		(newSearchQuery.toLowerCase().indexOf('tunnel') !== -1)
+ || (newSearchQuery.toLowerCase().indexOf('disaster') !== -1) 
+ || (newSearchQuery.toLowerCase().indexOf('animal') !== -1) 
+ || (newSearchQuery.toLowerCase().indexOf('collapse') !== -1) 
+ || (newSearchQuery.toLowerCase().indexOf('crash') !== -1) 
+ || (newSearchQuery.toLowerCase().indexOf('fire') !== -1) 
+	) databaseToUse = databaseTunnel;
 
 	// If the query has hubble, or telescope in it
 	//if ( (newSearchQuery.toLowerCase().indexOf('hubble') !== -1) ||  || (newSearchQuery.toLowerCase().indexOf('telescope') !== -1) )
@@ -812,16 +843,59 @@ function processQuery(query) {
 	return query;
 }
 
+// Auto-restart speech 3 times to give them speaking room
+var numTimesSpeechEnded = 0;
+
 recognition.onspeechend = function() {
-  recognition.stop();
+/*  recognition.stop();
+	console.log("Speech end");
+	numTimesSpeechEnded++;
+	if (numTimesSpeechEnded < 4) {
+		ignoreClick = false;
+		setTimeout(startRecognizing, 500);
+	} else whatWasThat();
+*/
+  console.log('speech end');
+	//recognition.stop();
+	isListening = false;
+
+	// Set timer to check: if we're on the same stage in 500ms,
+	// AND same substage,
+	// AND we are not listening,
+	// then send a whatWasThat
+	setTimeout(( (st, subSt) => {
+		if (st == stage && subSt == substage && isListening === false) whatWasThat();
+		console.log('trifecta');
+	}).bind(this, stage, substage), 500)
 }
 
 recognition.onnomatch = function(event) {
-  console.log("I didn't recognise that.")
+  console.log("NO MATCH - I didn't recognise that.")
+	whatWasThat();
 }
 
 recognition.onerror = function(event) {
   console.log('Error occurred in recognition: ' + event.error);
+  if (!resultStage) {
+	  alert("Sorry, I didn't hear anything. Try again, and speak loud and clear.");
+		whatWasThat();
+	}
+}
+
+recognition.audioend = function(event) {
+ console.log('AUDIO END');
+}
+
+function whatWasThat() {
+	if (!resultStage) {
+		isListening = false;
+		// Stop recognition, remove flag, and alert:
+		recognition.stop();
+		ignoreClick = false;
+		console.log("Sorry, I didn't hear anything. Try again, and speak loud and clear.");
+		// Click for them (their click will do nothing and they won't know)
+		setTimeout(startRecognizing, 500);
+	}
 }
 
 var myTimeout;
