@@ -385,6 +385,8 @@ function sendLogs() {
 var everythingLog = [];
 // timestamp | Searched for xxx
 
+// If the page is reloaded, time will be ~0 (under 100ms for sure)
+var thisInstant = +new Date();
 
 function mikeCheck() {
 	// I have a Russian friend who's a sound engineer.
@@ -393,7 +395,14 @@ function mikeCheck() {
 	navigator.permissions.query({name:'microphone'}).then(function(result) {
 	 if (result.state == 'granted') {
 		 micAllowed = true;
-		 nextStage(1);
+
+		 // If less than 100ms, it was already approved. So the handler for consentandallow should now be 1) startRecognizing 2) nextStage(1) instead of just startRecognizing.
+	   if ((+new Date() - thisInstant) < 100) {
+			 consentandallow.onclick = function() {
+				 startRecognizing();
+				 nextStage(1);
+			 }
+		 } else nextStage(1);
    } else {
 		 // Not allowed (if you have a bug here read mdn)
 		 // so keep checking.
@@ -418,7 +427,7 @@ function nextStage(newStage) {
 			p1.innerHTML = "Speak this number to continue.";
 			p2.innerHTML = "Make sure your headphones or speakers are on.";
 			speaking = true;
-			speakOnRepeat('five');
+			speakOnRepeat('seventy seven');
 			break;
 		case 2:
 			speaking = false;
@@ -658,7 +667,7 @@ function startRecognizing() {
 		ignoreClick = true;
 		recognition.start();
 		console.log('Ready to receive speech input.');
-		//console.log('Waiting for a five.');
+		//console.log('Waiting for a 77.');
 	} else {
 		console.log("EXTRANEOUS CLICK IGNORED");
 	}
@@ -679,8 +688,12 @@ recognition.onresult = function(event) {
 	console.log('Confidence: ' + event.results[0][0].confidence);
 
 	if (stage === 1) {
-		// Looking for a five
-		if (transcribed.search('five') !== -1 || transcribed.search('5') !== -1) nextStage(2);
+		// Looking for a 77
+		if (transcribed.search('seven') !== -1 || transcribed.search('7') !== -1) nextStage(2);
+		else {
+			ignoreClick = false;
+			setTimeout(_ => startRecognizing(), 1000); // Let them try again.
+		}
 	} else if (substage === 2) {
 		// We just asked them for a number 1, 2 or 3
 		if (transcribed.search('one') !== -1 || transcribed.search('1') !== -1) whichSiteToChoose = 0;
